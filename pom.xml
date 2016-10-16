@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.arkysan.headhunter</groupId>
-	<artifactId>HeadHunter</artifactId>
+	<groupId>com.darkblade12.itemslotmachine</groupId>
+	<artifactId>ItemSlotMachine</artifactId>
 	<version>3.4</version>
 
 	<build>
-		<finalName>HeadHunter</finalName>
+		<finalName>ItemSlotMachine</finalName>
 	</build>
 
 	<!-- Dependencies -->

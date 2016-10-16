@@ -1,6 +1,7 @@
 package com.darkblade12.itemslotmachine.coin;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -144,7 +145,8 @@ public final class CoinManager extends Manager {
 			Player p = event.getPlayer();
 			Sign s;
 			try {
-				s = (Sign) p.getTargetBlock(null, 6).getState();
+				HashSet<Byte> ignore = null;
+				s = (Sign) p.getTargetBlock(ignore, 6).getState();
 				if (!isShop(s))
 					return;
 			} catch (Exception e) {
