@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import org.bukkit.Bukkit;
 
 /**
@@ -30,21 +31,6 @@ public final class ReflectionUtil {
 	}
 
 	private ReflectionUtil() {}
-
-	public enum DynamicPackage {
-		MINECRAFT_SERVER {
-			@Override
-			public String toString() {
-				return "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23, 30);
-			}
-		},
-		CRAFTBUKKIT {
-			@Override
-			public String toString() {
-				return Bukkit.getServer().getClass().getPackage().getName();
-			}
-		};
-	}
 
 	public static class FieldEntry {
 		String key;
@@ -93,14 +79,6 @@ public final class ReflectionUtil {
 		return true;
 	}
 
-	public static Class<?> getClass(String name, DynamicPackage pack, String subPackage) throws Exception {
-		return Class.forName(pack + (subPackage != null && subPackage.length() > 0 ? "." + subPackage : "") + "." + name);
-	}
-
-	public static Class<?> getClass(String name, DynamicPackage pack) throws Exception {
-		return getClass(name, pack, null);
-	}
-
 	public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... paramTypes) {
 		Class<?>[] t = toPrimitiveTypeArray(paramTypes);
 		for (Constructor<?> c : clazz.getConstructors()) {
@@ -113,14 +91,6 @@ public final class ReflectionUtil {
 
 	public static Object newInstance(Class<?> clazz, Object... args) throws Exception {
 		return getConstructor(clazz, toPrimitiveTypeArray(args)).newInstance(args);
-	}
-
-	public static Object newInstance(String name, DynamicPackage pack, String subPackage, Object... args) throws Exception {
-		return newInstance(getClass(name, pack, subPackage), args);
-	}
-
-	public static Object newInstance(String name, DynamicPackage pack, Object... args) throws Exception {
-		return newInstance(getClass(name, pack, null), args);
 	}
 
 	public static Method getMethod(String name, Class<?> clazz, Class<?>... paramTypes) {

@@ -1,53 +1,24 @@
 package com.darkblade12.itemslotmachine.sign;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 import com.darkblade12.itemslotmachine.settings.Settings;
-import com.darkblade12.itemslotmachine.util.ReflectionUtil;
-import com.darkblade12.itemslotmachine.util.ReflectionUtil.DynamicPackage;
 
 public final class SignUpdater {
-	private static Constructor<?> blockPosition;
-	private static Constructor<?> chatComponentText;
-	private static Class<?> iChatBaseComponent;
-	private static Constructor<?> packetPlayOutUpdateSign;
-
-	static {
-		try {
-			Class<?> blockPositionClass = ReflectionUtil.getClass("BlockPosition", DynamicPackage.MINECRAFT_SERVER);
-			blockPosition = ReflectionUtil.getConstructor(blockPositionClass, int.class, int.class, int.class);
-			chatComponentText = ReflectionUtil.getConstructor(ReflectionUtil.getClass("ChatComponentText", DynamicPackage.MINECRAFT_SERVER), String.class);
-			iChatBaseComponent = ReflectionUtil.getClass("IChatBaseComponent", DynamicPackage.MINECRAFT_SERVER);
-			Class<?> packetPlayOutUpdateSignClass = ReflectionUtil.getClass("PacketPlayOutUpdateSign", DynamicPackage.MINECRAFT_SERVER);
-			Class<?> worldClass = ReflectionUtil.getClass("World", DynamicPackage.MINECRAFT_SERVER);
-			Class<?> arrayClass = Array.newInstance(iChatBaseComponent, 0).getClass();
-			packetPlayOutUpdateSign = ReflectionUtil.getConstructor(packetPlayOutUpdateSignClass, worldClass, blockPositionClass, arrayClass);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	private SignUpdater() {}
 
 	public static void updateSign(Player p, int x, int y, int z, String[] lines, int... splittable) {
+		
 		try {
 			World w = p.getWorld();
-			if (w.getBlockAt(x, y, z).getState() instanceof Sign) {
-				Object playerConnection = ReflectionUtil.getValue("playerConnection", ReflectionUtil.invokeMethod("getHandle", p.getClass(), p));
-				Object world = ReflectionUtil.invokeMethod("getHandle", w.getClass(), w);
+			Block b = w.getBlockAt(x, y, z);
+			if (b.getState() instanceof Sign) {
 				String[] validated = validateLines(lines, splittable);
-				Object[] text = (Object[]) Array.newInstance(iChatBaseComponent, 4);
-				text[0] = chatComponentText.newInstance(validated[0]);
-				text[1] = chatComponentText.newInstance(validated[1]);
-				text[2] = chatComponentText.newInstance(validated[2]);
-				text[3] = chatComponentText.newInstance(validated[3]);
-				ReflectionUtil.invokeMethod("sendPacket", playerConnection.getClass(), playerConnection, packetPlayOutUpdateSign.newInstance(world, blockPosition.newInstance(x, y, z), text));
+				p.sendSignChange(b.getLocation(), validated);
 			}
 		} catch (Exception e) {
 			if (Settings.isDebugModeEnabled())

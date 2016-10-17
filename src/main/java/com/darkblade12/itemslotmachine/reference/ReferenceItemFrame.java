@@ -1,13 +1,16 @@
 package com.darkblade12.itemslotmachine.reference;
 
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 
 import com.darkblade12.itemslotmachine.util.ReflectionUtil;
-import com.darkblade12.itemslotmachine.util.ReflectionUtil.DynamicPackage;
+
+import net.minecraft.server.v1_10_R1.BlockPosition;
+import net.minecraft.server.v1_10_R1.EntityItemFrame;
+import net.minecraft.server.v1_10_R1.EnumDirection;
+import net.minecraft.server.v1_10_R1.World;
 
 public final class ReferenceItemFrame extends ReferenceLocation {
 	private static final String FORMAT = "-?\\d+(@-?\\d+){2}@(SOUTH|WEST|NORTH|EAST)@(SOUTH|WEST|NORTH|EAST)";
@@ -52,14 +55,13 @@ public final class ReferenceItemFrame extends ReferenceLocation {
 
 	public void place(Location c, Direction d) {
 		Location l = getBukkitLocation(c, d);
-		World w = l.getWorld();
+		org.bukkit.World w = l.getWorld();
 		try {
-			Object world = ReflectionUtil.invokeMethod("getHandle", w.getClass(), w);
-			Object position = ReflectionUtil.newInstance("BlockPosition", DynamicPackage.MINECRAFT_SERVER, l.getX(), l.getY(), l.getZ());
-			Class<?> enumDirection = ReflectionUtil.getClass("EnumDirection", DynamicPackage.MINECRAFT_SERVER);
-			Object direction = ReflectionUtil.invokeMethod("valueOf", enumDirection, null, rotate(d).name());
-			Object frame = ReflectionUtil.newInstance("EntityItemFrame", DynamicPackage.MINECRAFT_SERVER, world, position, direction);
-			ReflectionUtil.invokeMethod("addEntity", world.getClass(), world, frame);
+			World world = (World)ReflectionUtil.invokeMethod("getHandle", w.getClass(), w);
+			BlockPosition position = new BlockPosition(l.getX(), l.getY(), l.getZ());
+			EnumDirection direction = EnumDirection.valueOf(rotate(d).name());
+			EntityItemFrame frame = new EntityItemFrame(world, position, direction);
+			world.addEntity(frame);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
