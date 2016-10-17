@@ -75,7 +75,7 @@ General_Settings:
    # This is the list of sounds which will be played upon ticking
    # Sound format: <sound_name>-<volume>-<pitch>
    # Format: <sound>(, <sound>...)
-   Sounds: CLICK-2-2
+   Sounds: BLOCK_LEVER_CLICK-2-2
   
   # This section contains settings for the win sound which will be played when a player wins at this slot machine
   Win_Sounds:
@@ -89,7 +89,7 @@ General_Settings:
    # This is the list of sounds which will be played upon win
    # Sound format: <sound_name>-<volume>-<pitch>
    # Format: <sound>(, <sound>...)
-   Sounds: LEVEL_UP-2-2
+   Sounds: ENTITY_PLAYER_LEVELUP-2-2
    
   # This section contains settings for the lose sound which will be played when a player loses at this slot machine
   Lose_Sounds:
@@ -103,7 +103,7 @@ General_Settings:
    # This is the list of sounds which will be played upon lose
    # Sound format: <sound_name>-<volume>-<pitch>
    # Format: <sound>(, <sound>...)
-   Sounds: NOTE_PIANO-2-2, NOTE_BASS_GUITAR-2-2
+   Sounds: BLOCK_NOTE_PLING-2-2, BLOCK_NOTE_BASS-2-2
   
  # This section contains settings for the player lock of this slot machine
  # A player lock will prevent other players from using a slot machine right after the spin of the recent user is over for a specified time
