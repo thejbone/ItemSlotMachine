@@ -6,27 +6,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 @SuppressWarnings("unchecked")
 public abstract class Hook<P extends JavaPlugin> {
-	protected P plugin;
-	protected static boolean ENABLED;
+    protected static boolean ENABLED;
+    protected P plugin;
 
-	public boolean load() {
-		Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(getPluginName());
-		if (plugin != null) {
-			this.plugin = (P) plugin;
-			ENABLED = initialize();
-		}
-		return plugin != null && ENABLED;
-	}
+    public static boolean isEnabled() {
+        return ENABLED;
+    }
 
-	protected abstract boolean initialize();
+    public boolean load() {
+        Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(getPluginName());
+        if (plugin != null) {
+            this.plugin = (P) plugin;
+            ENABLED = initialize();
+        }
+        return plugin != null && ENABLED;
+    }
 
-	public abstract String getPluginName();
+    protected abstract boolean initialize();
 
-	public P getPlugin() {
-		return this.plugin;
-	}
+    public abstract String getPluginName();
 
-	public static boolean isEnabled() {
-		return ENABLED;
-	}
+    public P getPlugin() {
+        return this.plugin;
+    }
 }
