@@ -4,7 +4,7 @@ import com.darkblade12.itemslotmachine.ItemSlotMachine;
 import com.darkblade12.itemslotmachine.command.CommandDetails;
 import com.darkblade12.itemslotmachine.command.ICommand;
 import com.darkblade12.itemslotmachine.statistic.Type;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;

@@ -300,8 +300,8 @@ public final class SlotMachineManager extends Manager implements NameGenerator {
                     } else {
                         if (s.isBroken())
                             p.sendMessage(plugin.messageManager.slot_machine_broken());
-                        else if (s.isActive())
-                            p.sendMessage(plugin.messageManager.slot_machine_still_active());
+                        else if (s.isActive()) {
+                        }
                         else if (s.isPlayerLockEnabled() && !s.isLockExpired() && !s.isUser(p))
                             p.sendMessage(plugin.messageManager.slot_machine_locked(s.getUserName(), s.getRemainingLockTime()));
                         else if (p.getGameMode() == GameMode.CREATIVE && !s.isCreativeUsageEnabled())

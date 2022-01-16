@@ -1,6 +1,6 @@
 package com.darkblade12.itemslotmachine.reader;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.plugin.Plugin;
 
 import java.io.BufferedReader;

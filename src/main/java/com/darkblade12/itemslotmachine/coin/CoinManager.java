@@ -8,6 +8,7 @@ import com.darkblade12.itemslotmachine.settings.Settings;
 import com.darkblade12.itemslotmachine.sign.SignUpdater;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("deprecation")
@@ -144,8 +146,7 @@ public final class CoinManager extends Manager {
             Player p = event.getPlayer();
             Sign s;
             try {
-                HashSet<Byte> ignore = null;
-                s = (Sign) p.getTargetBlock(ignore, 6).getState();
+                s = (Sign) p.getTargetBlock((Set<Material>) null, 6).getState();
                 if (!isShop(s))
                     return;
             } catch (Exception e) {

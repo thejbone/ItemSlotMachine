@@ -75,7 +75,10 @@ public final class StatisticManager extends Manager {
 
     public PlayerStatistic getStatistic(String name, boolean create) {
         PlayerStatistic p = getStatistic(name);
-        return p == null ? create ? create(name) : null : p;
+        if(p == null){
+            return create(name);
+        }
+        return p;
     }
 
     public PlayerStatistic getStatistic(Player p, boolean create) {

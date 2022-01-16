@@ -1,12 +1,9 @@
 package com.darkblade12.itemslotmachine.reference;
 
 import com.darkblade12.itemslotmachine.util.ReflectionUtil;
-import net.minecraft.server.v1_9_R2.BlockPosition;
-import net.minecraft.server.v1_9_R2.EntityItemFrame;
-import net.minecraft.server.v1_9_R2.EnumDirection;
-import net.minecraft.server.v1_9_R2.World;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 
@@ -55,11 +52,7 @@ public final class ReferenceItemFrame extends ReferenceLocation {
         Location l = getBukkitLocation(c, d);
         org.bukkit.World w = l.getWorld();
         try {
-            World world = (World) ReflectionUtil.invokeMethod("getHandle", w.getClass(), w);
-            BlockPosition position = new BlockPosition(l.getX(), l.getY(), l.getZ());
-            EnumDirection direction = EnumDirection.valueOf(rotate(d).name());
-            EntityItemFrame frame = new EntityItemFrame(world, position, direction);
-            world.addEntity(frame);
+            w.spawnEntity(l, EntityType.ITEM_FRAME);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -163,7 +163,6 @@ public final class SlotMachine extends SlotMachineBase implements Nameable {
         return items;
     }
 
-    @SuppressWarnings("deprecation")
     private void handleWin(double moneyPrize, ItemList itemPrize, boolean executeCommands) {
         playWinEffect();
         statistic.getObject(Type.WON_SPINS).increaseValue(1);
