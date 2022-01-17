@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-@CommandDetails(name = "grant", params = "<player> <amount>", executableAsConsole = true, permission = "ItemSlotMachine.coin.grant")
+@CommandDetails(name = "grant", params = "<player> <type> <amount>", executableAsConsole = true, permission = "ItemSlotMachine.coin.grant")
 public final class GrantCommand implements ICommand {
     @Override
     public void execute(ItemSlotMachine plugin, CommandSender sender, String label, String[] params) {
@@ -18,7 +18,12 @@ public final class GrantCommand implements ICommand {
             sender.sendMessage(plugin.messageManager.player_not_existent());
             return;
         }
-        String input = params[1];
+        String coinType = params[1];
+        if(!plugin.coinManager.isCoin(coinType)){
+            sender.sendMessage(plugin.messageManager.coin_nonexistant(coinType));
+            return;
+        }
+        String input = params[2];
         int amount;
         try {
             amount = Integer.parseInt(input);
@@ -32,7 +37,7 @@ public final class GrantCommand implements ICommand {
         }
         String name = sender.getName();
         boolean self = p.getName().equals(name);
-        ItemStack i = plugin.coinManager.getCoin(amount);
+        ItemStack i = plugin.coinManager.getCoin(coinType,amount);
         if (!ItemList.hasEnoughSpace(p, i)) {
             sender.sendMessage(self ? plugin.messageManager.player_not_enough_space() : plugin.messageManager.player_not_enough_space_other());
             return;

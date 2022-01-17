@@ -66,7 +66,9 @@ public abstract interface MessageContainer {
 
     public abstract String coin_purchase_not_enough_money(int coins, double price, String currencyName);
 
-    public abstract String coin_purchase(int coins, double price, String currencyName);
+    public abstract String coin_nonexistant(String coin);
+
+    public abstract String coin_purchase(String coinName, int coins, double price, String currencyName);
 
     public abstract String coin_grant_self(int coins);
 
@@ -86,7 +88,7 @@ public abstract interface MessageContainer {
 
     public abstract String slot_machine_creative_not_allowed();
 
-    public abstract String slot_machine_not_enough_coins(int coins);
+    public abstract String slot_machine_not_enough_coins(int coins, String coinName);
 
     public abstract String slot_machine_limited_usage(int amount);
 
@@ -109,6 +111,8 @@ public abstract interface MessageContainer {
     public abstract String slot_machine_list_empty();
 
     public abstract String slot_machine_list(String list);
+
+    public abstract String slot_machine_list();
 
     public abstract String slot_machine_teleportation_failure(String name, String cause);
 
@@ -184,6 +188,8 @@ public abstract interface MessageContainer {
 
     public abstract String sign_coin_shop_coins(int coins);
 
+    String sign_coin_shop_name(String name);
+
     public abstract String sign_coin_shop_price(double price);
 
     public abstract String sign_coin_shop_spacer();
@@ -217,4 +223,6 @@ public abstract interface MessageContainer {
     public abstract String won_money();
 
     public abstract String won_items();
+
+    String slot_machine_config_does_not_exist();
 }

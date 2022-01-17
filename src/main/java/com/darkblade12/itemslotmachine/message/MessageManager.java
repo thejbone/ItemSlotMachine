@@ -8,6 +8,7 @@ import com.darkblade12.itemslotmachine.manager.Manager;
 import com.darkblade12.itemslotmachine.reader.TextReader;
 import com.darkblade12.itemslotmachine.settings.Settings;
 import com.darkblade12.itemslotmachine.slotmachine.SlotMachine;
+import com.darkblade12.itemslotmachine.slotmachine.SlotMachineConfig;
 import com.darkblade12.itemslotmachine.statistic.Statistic;
 import com.darkblade12.itemslotmachine.statistic.StatisticObject;
 import com.darkblade12.itemslotmachine.statistic.Type;
@@ -440,17 +441,22 @@ public final class MessageManager extends Manager implements MessageContainer {
         return getMessage("coin_purchase_not_enough_money", true).replace("<coins>", Integer.toString(coins)).replace("<price>", Double.toString(price)).replace("<currency_name>", currencyName);
     }
 
+    @Override
+    public String coin_nonexistant(String coin) {
+        return getMessage("coin_nonexistant", true).replace("<coin>", (coin));
+    }
+
     public String coin_purchase_not_enough_money(int coins, double price) {
         return coin_purchase_not_enough_money(coins, price, price == 1 ? VaultHook.ECONOMY.currencyNameSingular() : VaultHook.ECONOMY.currencyNameSingular());
     }
 
     @Override
-    public String coin_purchase(int coins, double price, String currencyName) {
-        return getMessage("coin_purchase", true).replace("<coins>", Integer.toString(coins)).replace("<price>", Double.toString(price)).replace("<currency_name>", currencyName);
+    public String coin_purchase(String coinName, int coins, double price, String currencyName) {
+        return getMessage("coin_purchase", true).replace("<coinName>", coinName).replace("<coins>", Integer.toString(coins)).replace("<price>", Double.toString(price)).replace("<currency_name>", currencyName);
     }
 
-    public String coin_purchase(int coins, double price) {
-        return coin_purchase(coins, price, price == 1 ? VaultHook.ECONOMY.currencyNameSingular() : VaultHook.ECONOMY.currencyNamePlural());
+    public String coin_purchase(String coinName, int coins, double price) {
+        return coin_purchase(coinName, coins, price, price == 1 ? VaultHook.ECONOMY.currencyNameSingular() : VaultHook.ECONOMY.currencyNamePlural());
     }
 
     @Override
@@ -499,17 +505,13 @@ public final class MessageManager extends Manager implements MessageContainer {
     }
 
     @Override
-    public String slot_machine_not_enough_coins(int coins) {
-        return getMessage("slot_machine_not_enough_coins", true).replace("<coins>", Integer.toString(coins));
+    public String slot_machine_not_enough_coins(int coins, String coinName) {
+        return getMessage("slot_machine_not_enough_coins", true).replace("<coins>", Integer.toString(coins)).replace("<coinName>", coinName);
     }
 
     @Override
     public String slot_machine_limited_usage(int amount) {
         return getMessage("slot_machine_limited_usage", true).replace("<amount>", Integer.toString(amount));
-    }
-
-    public String slot_machine_limited_usage() {
-        return slot_machine_limited_usage(Settings.getLimitedUsageAmount());
     }
 
     @Override
@@ -572,8 +574,13 @@ public final class MessageManager extends Manager implements MessageContainer {
         return getMessage("slot_machine_list", true).replace("<list>", list);
     }
 
+    @Override
     public String slot_machine_list() {
-        return slot_machine_list(slotMachinesToString(plugin.slotMachineManager.getSlotMachines()));
+        return slot_machine_list(slotMachinesToString(plugin.slotMachineManager.getAllSlotMachines()));
+    }
+
+    public String slot_machine_list(SlotMachineConfig slotMachineConfig) {
+        return slot_machine_list(slotMachinesToString(slotMachineConfig.getSlotMachines()));
     }
 
     @Override
@@ -815,6 +822,10 @@ public final class MessageManager extends Manager implements MessageContainer {
     }
 
     @Override
+    public String sign_coin_shop_name(String name) {
+        return getMessage("sign_coin_shop_name").replace("<name>", name);
+    }
+    @Override
     public String sign_coin_shop_price(double price) {
         return getMessage("sign_coin_shop_price").replace("<price>", Double.toString(price));
     }
@@ -902,4 +913,7 @@ public final class MessageManager extends Manager implements MessageContainer {
     public String won_items() {
         return getMessage("won_items");
     }
+
+    @Override
+    public String slot_machine_config_does_not_exist() { return getMessage("slot_machine_config_does_not_exist"); }
 }

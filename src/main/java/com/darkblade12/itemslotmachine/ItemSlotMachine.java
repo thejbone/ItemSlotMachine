@@ -13,16 +13,24 @@ import com.darkblade12.itemslotmachine.reader.TemplateReader;
 import com.darkblade12.itemslotmachine.settings.Settings;
 import com.darkblade12.itemslotmachine.slotmachine.SlotMachineManager;
 import com.darkblade12.itemslotmachine.statistic.StatisticManager;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.Template;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public final class ItemSlotMachine extends JavaPlugin {
     public static final String MASTER_PERMISSION = "ItemSlotMachine.*";
     public Logger l;
-    public TemplateReader template;
+    public HashMap<String,TemplateReader> templates;
     public VaultHook vaultHook;
     public MessageManager messageManager;
     public DesignManager designManager;
@@ -39,9 +47,15 @@ public final class ItemSlotMachine extends JavaPlugin {
     public void onEnable() {
         long check = System.currentTimeMillis();
         l = getLogger();
-        l.info("==================== Attention ====================");
-        l.info("This plugin only works with Minecraft 1.9 (net.minecraft.server.v1_9_R2)!");
-        l.info("==================== Attention ====================");
+
+        templates = new HashMap<>();
+        TemplateReader template = new TemplateReader(this,  "template.yml", "plugins/ItemSlotMachine/");
+
+        if (!template.readTemplate()) {
+            l.warning("Failed to read template.yml, plugin will disable!");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         settings = new Settings(this);
         try {
             settings.load();
@@ -52,12 +66,6 @@ public final class ItemSlotMachine extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        template = new TemplateReader(this, "template.yml", "plugins/ItemSlotMachine/");
-        if (!template.readTemplate()) {
-            l.warning("Failed to read template.yml, plugin will disable!");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
         vaultHook = new VaultHook();
         if (vaultHook.load())
             l.info("Vault hooked, money distribution is active.");
@@ -65,8 +73,13 @@ public final class ItemSlotMachine extends JavaPlugin {
         if (!messageManager.onInitialize())
             return;
         designManager = new DesignManager(this);
+        templates.putAll(Settings.getTemplates());
         coinManager = new CoinManager(this);
         slotMachineManager = new SlotMachineManager(this);
+
+        slotMachineManager.getSlotMachineConfigs().forEach((a) -> {
+
+        });
         statisticManager = new StatisticManager(this);
         designCommandHandler = new DesignCommandHandler(this);
         coinCommandHandler = new CoinCommandHandler(this);

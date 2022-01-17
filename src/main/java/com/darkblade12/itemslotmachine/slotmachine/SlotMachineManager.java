@@ -1,14 +1,14 @@
 package com.darkblade12.itemslotmachine.slotmachine;
 
 import com.darkblade12.itemslotmachine.ItemSlotMachine;
+import com.darkblade12.itemslotmachine.coin.CoinConfig;
 import com.darkblade12.itemslotmachine.manager.Manager;
-import com.darkblade12.itemslotmachine.nameable.NameGenerator;
-import com.darkblade12.itemslotmachine.nameable.NameableComparator;
-import com.darkblade12.itemslotmachine.nameable.NameableList;
+import com.darkblade12.itemslotmachine.reader.TemplateReader;
 import com.darkblade12.itemslotmachine.settings.Settings;
 import com.darkblade12.itemslotmachine.statistic.StatisticComparator;
 import com.darkblade12.itemslotmachine.statistic.Type;
 import com.darkblade12.itemslotmachine.statistic.types.SlotMachineStatistic;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -28,15 +28,18 @@ import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public final class SlotMachineManager extends Manager implements NameGenerator {
-    private static final File DIRECTORY = new File("plugins/ItemSlotMachine/slot machines/");
-    private NameableComparator<SlotMachine> comparator;
-    private NameableList<SlotMachine> slotMachines;
+public final class SlotMachineManager extends Manager {
+    private HashMap<String, SlotMachineConfig> machineConfigs;
 
     public SlotMachineManager(ItemSlotMachine plugin) {
         super(plugin);
@@ -45,8 +48,12 @@ public final class SlotMachineManager extends Manager implements NameGenerator {
 
     @Override
     public boolean onInitialize() {
-        comparator = new NameableComparator<SlotMachine>(Settings.getRawSlotMachineName());
-        loadSlotMachines();
+        machineConfigs = new HashMap<>();
+        machineConfigs.putAll(Settings.getSlotMachineConfigs());
+
+        for(Map.Entry<String, SlotMachineConfig> b : machineConfigs.entrySet()){
+            b.getValue().loadSlotMachines(plugin);
+        }
         registerEvents();
         return true;
     }
@@ -54,138 +61,84 @@ public final class SlotMachineManager extends Manager implements NameGenerator {
     @Override
     public void onDisable() {
         unregisterAll();
-        for (int i = 0; i < slotMachines.size(); i++)
-            slotMachines.get(i).deactivate();
+        machineConfigs.forEach((a,b) -> {
+            b.deactivateSlotMachines();
+        });
     }
 
-    @Override
-    public String generateName() {
-        Set<Integer> used = new HashSet<Integer>();
-        for (String name : getNames())
-            if (name.contains(Settings.getRawSlotMachineName()))
-                try {
-                    used.add(Integer.parseInt(name.replace(Settings.getRawSlotMachineName(), "")));
-                } catch (Exception e) {
-                    /* custom ids are ignored */
-                }
-        int n = 1;
-        while (used.contains(n))
-            n++;
-        return Settings.getDefaultSlotMachineName().replace("<num>", Integer.toString(n));
-    }
-
-    private void sort() {
-        Collections.sort(slotMachines, comparator);
-    }
-
-    public void loadSlotMachines() {
-        slotMachines = new NameableList<SlotMachine>(true);
-        for (String name : getNames())
-            try {
-                slotMachines.add(SlotMachine.load(plugin, name));
-            } catch (Exception e) {
-                plugin.l.warning("Failed to load slot machine '" + name + "'! Cause: " + e.getMessage());
-                if (Settings.isDebugModeEnabled())
-                    e.printStackTrace();
+    public SlotMachine getSlotMachine(Location block){
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()){
+            if(s.getValue().getSlotMachine(block) != null){
+                return s.getValue().getSlotMachine(block);
             }
-        sort();
-        int amount = slotMachines.size();
-        plugin.l.info(amount + " slot machine" + (amount == 1 ? "" : "s") + " loaded.");
-    }
-
-    public void register(SlotMachine s) {
-        slotMachines.add(s);
-        sort();
-    }
-
-    public void unregister(SlotMachine s) {
-        slotMachines.remove(s.getName());
-        sort();
-        s.destruct();
-    }
-
-    public void reload(SlotMachine s) throws Exception {
-        s.deactivate();
-        slotMachines.remove(s.name);
-        slotMachines.add(SlotMachine.load(plugin, s.name));
-    }
-
-    private void deactivateUsed(Player p) {
-        for (int i = 0; i < slotMachines.size(); i++) {
-            SlotMachine s = slotMachines.get(i);
-            if (s.isUser(p))
-                s.deactivate();
-        }
-    }
-
-    @Override
-    public Set<String> getNames() {
-        Set<String> names = new HashSet<String>();
-        if (DIRECTORY.exists() && DIRECTORY.isDirectory())
-            for (File f : DIRECTORY.listFiles()) {
-                String name = f.getName();
-                if (name.endsWith(".yml"))
-                    names.add(name.replace(".yml", ""));
-            }
-        return names;
-    }
-
-    public boolean hasName(String name) {
-        for (String n : getNames())
-            if (n.equalsIgnoreCase(name))
-                return true;
-        return false;
-    }
-
-    public List<SlotMachine> getSlotMachines() {
-        return Collections.unmodifiableList(slotMachines);
-    }
-
-    public SlotMachine getSlotMachine(String name) {
-        return slotMachines.get(name);
-    }
-
-    public SlotMachine getSlotMachine(Location l) {
-        for (int i = 0; i < slotMachines.size(); i++) {
-            SlotMachine s = slotMachines.get(i);
-            if (s.isInsideRegion(l))
-                return s;
         }
         return null;
+    }
+    public SlotMachine getSlotMachine(String name){
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()){
+            if(s.getValue().getSlotMachine(name) != null){
+                return s.getValue().getSlotMachine(name);
+            }
+        }
+        return null;
+    }
+
+    SlotMachineConfig getSlotMachineConfig(SlotMachine slot){
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()){
+            if(s.getValue().hasSlotMachine(slot)){
+                return s.getValue();
+            }
+        }
+        return null;
+    }
+
+    public ArrayList<SlotMachineConfig> getSlotMachineConfigs(){
+        ArrayList<SlotMachineConfig> slotMachineConfigs = new ArrayList<>();
+        machineConfigs.forEach((a,b) ->
+        {
+            slotMachineConfigs.add(b);
+        });
+        return slotMachineConfigs;
+    }
+
+    public SlotMachineConfig getSlotMachineConfig(String name){
+        return machineConfigs.get(name);
     }
 
     private SlotMachine getInteractedSlotMachine(Location l) {
-        for (int i = 0; i < slotMachines.size(); i++) {
-            SlotMachine s = slotMachines.get(i);
-            if (s.hasInteracted(l))
-                return s;
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()) {
+            for (int i = 0; i < s.getValue().getSlotMachines().size(); i++) {
+                SlotMachine slot = s.getValue().getSlotMachines().get(i);
+                if (slot.hasInteracted(l))
+                    return slot;
+            }
         }
         return null;
-    }
-
-    public boolean hasSlotMachine(String name) {
-        return slotMachines.contains(name);
-    }
-
-    public int getSlotMachineAmount() {
-        return slotMachines.size();
     }
 
     private int getActivatedAmount(Player p) {
         int a = 0;
-        for (int i = 0; i < slotMachines.size(); i++) {
-            SlotMachine s = slotMachines.get(i);
-            if (s.isUser(p) && s.isActive())
-                a++;
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()) {
+            for (int i = 0; i < s.getValue().getSlotMachines().size(); i++) {
+                SlotMachine slot = s.getValue().getSlotMachines().get(i);
+                if (slot.isUser(p) && slot.isActive())
+                    a++;
+            }
         }
         return a;
     }
 
+    public boolean doesCoinAndMachineMatch(ItemStack coin, SlotMachineConfig config){
+        return coin.isSimilar(config.getCoinConfig().getCOIN_ITEM());
+    }
+
     public List<SlotMachineStatistic> getTop(Type t) {
         List<SlotMachineStatistic> top = new ArrayList<SlotMachineStatistic>();
-        for (int i = 0; i < slotMachines.size(); i++)
-            top.add(slotMachines.get(i).getStatistic());
-        Collections.sort(top, new StatisticComparator(t));
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()) {
+            for (int i = 0; i < s.getValue().getSlotMachines().size(); i++)
+                top.add(s.getValue().getSlotMachines().get(i).getStatistic());
+            Collections.sort(top, new StatisticComparator(t));
+        }
         return top;
     }
 
@@ -276,10 +229,11 @@ public final class SlotMachineManager extends Manager implements NameGenerator {
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player p = event.getPlayer();
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getHand() == EquipmentSlot.HAND) {
             ItemStack h = p.getItemInHand();
             Location l = event.getClickedBlock().getLocation();
             SlotMachine s = getSlotMachine(l);
+            SlotMachineConfig slotMachineConfig = getSlotMachineConfig(s);
             if (h.getType() == Material.WATER_BUCKET || h.getType() == Material.LAVA_BUCKET) {
                 if (s != null && !s.isPermittedToModify(p)) {
                     event.setCancelled(true);
@@ -306,12 +260,15 @@ public final class SlotMachineManager extends Manager implements NameGenerator {
                             p.sendMessage(plugin.messageManager.slot_machine_locked(s.getUserName(), s.getRemainingLockTime()));
                         else if (p.getGameMode() == GameMode.CREATIVE && !s.isCreativeUsageEnabled())
                             p.sendMessage(plugin.messageManager.slot_machine_creative_not_allowed());
-                        else if (!s.hasEnoughCoins(p))
-                            p.sendMessage(plugin.messageManager.slot_machine_not_enough_coins(s.getActivationAmount()));
-                        else if (Settings.isLimitedUsageEnabled() && getActivatedAmount(p) + 1 > Settings.getLimitedUsageAmount())
-                            p.sendMessage(plugin.messageManager.slot_machine_limited_usage());
-                        else
-                            s.activate(p);
+                        else {
+                            assert slotMachineConfig != null;
+                            if (!s.hasEnoughCoins(p, slotMachineConfig.getCoinConfig()))
+                                p.sendMessage(ChatColor.translateAlternateColorCodes('&',plugin.messageManager.slot_machine_not_enough_coins(s.getActivationAmount(),slotMachineConfig.getCoinConfig().getCOIN_DISPLAY())));
+                            else if (slotMachineConfig.isLIMITED_USAGE() && getActivatedAmount(p) + 1 > slotMachineConfig.getMAX_USAGE())
+                                p.sendMessage(plugin.messageManager.slot_machine_limited_usage(slotMachineConfig.getMAX_USAGE()));
+                            else
+                                s.activate(p);
+                        }
                     }
                 }
             }
@@ -324,8 +281,61 @@ public final class SlotMachineManager extends Manager implements NameGenerator {
         }
     }
 
+
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        deactivateUsed(event.getPlayer());
+        for(Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()){
+            s.getValue().deactivateUsed(event.getPlayer());
+        }
+    }
+
+    public boolean hasSlotMachine(String name) {
+        for (Map.Entry<String, SlotMachineConfig> s : machineConfigs.entrySet()) {
+            if(s.getValue().hasSlotMachine(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void register(SlotMachineConfig sc, SlotMachine slotMachine) {
+        machineConfigs.forEach((a,b) -> {
+            if(b.getSLOT_NAME().equals(sc.getSLOT_NAME())){
+                b.register(slotMachine);
+            }
+        });
+    }
+
+    public void reload(SlotMachine s) {
+        machineConfigs.forEach((a,b) -> {
+            try {
+                b.reload(plugin, s);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public int getSlotMachineAmount() {
+        AtomicInteger totalMachines = new AtomicInteger();
+        machineConfigs.forEach((a,b) -> {
+            totalMachines.addAndGet(b.getSlotMachineAmount());
+        });
+        return totalMachines.intValue();
+    }
+
+    public List<SlotMachine> getAllSlotMachines() {
+        List<SlotMachine> slots = new ArrayList<>();
+        machineConfigs.forEach((a,b) -> {
+            slots.addAll(b.getSlotMachines());
+        });
+        return slots;
+    }
+
+    public void unregister(SlotMachine s) {
+        machineConfigs.forEach((a,b) -> {
+            if(b.hasSlotMachine(s))
+                b.unregister(s);
+        });
     }
 }

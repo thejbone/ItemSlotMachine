@@ -1,6 +1,7 @@
 package com.darkblade12.itemslotmachine.slotmachine;
 
 import com.darkblade12.itemslotmachine.ItemSlotMachine;
+import com.darkblade12.itemslotmachine.coin.CoinConfig;
 import com.darkblade12.itemslotmachine.cuboid.Cuboid;
 import com.darkblade12.itemslotmachine.design.Design;
 import com.darkblade12.itemslotmachine.hook.VaultHook;
@@ -8,6 +9,7 @@ import com.darkblade12.itemslotmachine.item.ItemList;
 import com.darkblade12.itemslotmachine.nameable.Nameable;
 import com.darkblade12.itemslotmachine.reader.CompressedStringReader;
 import com.darkblade12.itemslotmachine.reader.ConfigReader;
+import com.darkblade12.itemslotmachine.reader.TemplateReader;
 import com.darkblade12.itemslotmachine.reference.Direction;
 import com.darkblade12.itemslotmachine.safe.SafeLocation;
 import com.darkblade12.itemslotmachine.settings.InvalidValueException;
@@ -105,10 +107,10 @@ public abstract class SlotMachineBase implements Nameable {
     protected double moneyPot;
     protected ItemList itemPot;
 
-    public SlotMachineBase(ItemSlotMachine plugin, String name) throws Exception {
+    public SlotMachineBase(ItemSlotMachine plugin, String name, String slotConfig) throws Exception {
         this.plugin = plugin;
         this.name = name;
-        instanceReader = new CompressedStringReader(name + ".instance", "plugins/ItemSlotMachine/slot machines/");
+        instanceReader = new CompressedStringReader(name + ".instance", "plugins/ItemSlotMachine/slot machines/" + slotConfig + "/");
         String s;
         try {
             s = instanceReader.readFromFile();
@@ -126,9 +128,14 @@ public abstract class SlotMachineBase implements Nameable {
         slot = design.getSlot().getSafeLocation(l, initialDirection);
         region = design.getRegion().getCuboid(l, initialDirection);
         statistic = SlotMachineStatistic.fromFile(name);
-        configReader = new ConfigReader(plugin, plugin.template, name + ".yml", "plugins/ItemSlotMachine/slot machines/");
+        try {
+            configReader = new ConfigReader(plugin, plugin.templates.get(slotConfig), name + ".yml", "plugins/ItemSlotMachine/slot machines/" + slotConfig + "/");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
         if (!configReader.readConfig())
             throw new Exception("Failed to read " + configReader.getOuputFileName());
+
         loadSettings();
         if (p.length == 3) {
             moneyPot = moneyPotDefaultSize;
@@ -645,12 +652,12 @@ public abstract class SlotMachineBase implements Nameable {
         return this.activationAmount;
     }
 
-    public boolean hasEnoughCoins(Player p) {
+    public boolean hasEnoughCoins(Player p, CoinConfig coin) {
         if (p.getGameMode() == GameMode.CREATIVE)
             return true;
         int a = activationAmount;
         for (ItemStack i : p.getInventory().getContents())
-            if (i != null && plugin.coinManager.isCoin(i))
+            if (i != null && coin.isCoin(i))
                 if (a == 0)
                     return true;
                 else if (i.getAmount() >= a)

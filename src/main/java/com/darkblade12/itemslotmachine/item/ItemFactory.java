@@ -1,5 +1,6 @@
 package com.darkblade12.itemslotmachine.item;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -45,7 +46,9 @@ public final class ItemFactory {
 
     public static ItemStack setName(ItemStack i, String name) {
         ItemMeta meta = i.getItemMeta();
-        meta.setDisplayName(name);
+        String newName = ChatColor.translateAlternateColorCodes('&',
+                name);
+        meta.setDisplayName(newName);
         i.setItemMeta(meta);
         return i;
     }

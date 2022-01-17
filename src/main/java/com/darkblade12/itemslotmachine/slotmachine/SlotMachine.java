@@ -32,18 +32,18 @@ public final class SlotMachine extends SlotMachineBase implements Nameable {
     private boolean active;
     private boolean halted;
 
-    private SlotMachine(ItemSlotMachine plugin, String name) throws Exception {
-        super(plugin, name);
+    private SlotMachine(ItemSlotMachine plugin, String name, String slotConfig) throws Exception {
+        super(plugin, name, slotConfig);
     }
 
-    public static SlotMachine create(ItemSlotMachine plugin, String name, Design d, Player p) throws Exception {
+    public static SlotMachine create(ItemSlotMachine plugin, String name, Design d, Player p, String slotConfig) throws Exception {
         d.build(p);
-        new CompressedStringReader(name + ".instance", "plugins/ItemSlotMachine/slot machines/").saveToFile(d.getName() + "#" + SafeLocation.fromBukkitLocation(p.getLocation()) + "#" + Direction.get(p).name());
-        return load(plugin, name);
+        new CompressedStringReader(name + ".instance", "plugins/ItemSlotMachine/slot machines/" + slotConfig + "/").saveToFile(d.getName() + "#" + SafeLocation.fromBukkitLocation(p.getLocation()) + "#" + Direction.get(p).name());
+        return load(plugin, name, slotConfig);
     }
 
-    public static SlotMachine load(ItemSlotMachine plugin, String name) throws Exception {
-        return new SlotMachine(plugin, name);
+    public static SlotMachine load(ItemSlotMachine plugin, String name, String slotConfig) throws Exception {
+        return new SlotMachine(plugin, name, slotConfig);
     }
 
     private void playTickingSounds() {

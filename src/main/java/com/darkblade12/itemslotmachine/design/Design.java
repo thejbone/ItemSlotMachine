@@ -94,12 +94,11 @@ public final class Design implements Nameable {
     }
 
     public void build(Location c, Direction d) throws Exception {
-        if (Settings.isSpaceCheckEnabled())
-            for (Block b : region.getCuboid(c, d)) {
-                Material m = b.getType();
-                if (m != Material.AIR && !Settings.isBlockIgnored(m))
-                    throw new Exception("There is not enough space for this design");
-            }
+        for (Block b : region.getCuboid(c, d)) {
+            Material m = b.getType();
+            if (m != Material.AIR)
+                throw new Exception("There is not enough space for this design");
+        }
         for (ReferenceBlock r : blocks)
             r.place(c, d);
         sign.place(c, d);
